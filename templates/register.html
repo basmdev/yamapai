@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Страница регистрации{% endblock %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Регистрация</h1>
+    <form method="POST" class="card p-4">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="username">Имя пользователя:</label>
+            {{ form.username(class="form-control", size=32) }}
+            {% if form.username.errors %}
+                <div class="text-danger">
+                    <ul>
+                        {% for error in form.username.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль:</label>
+            {{ form.password(class="form-control", size=32) }}
+            {% if form.password.errors %}
+                <div class="text-danger">
+                    <ul>
+                        {% for error in form.password.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Подтвердите пароль:</label>
+            {{ form.confirm_password(class="form-control", size=32) }}
+            {% if form.confirm_password.errors %}
+                <div class="text-danger">
+                    <ul>
+                        {% for error in form.confirm_password.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="secret_code">Секретный код:</label>
+            {{ form.secret_code(class="form-control", size=32) }}
+            {% if form.secret_code.errors %}
+                <div class="text-danger">
+                    <ul>
+                        {% for error in form.secret_code.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+    </form>
+    <p class="text-center mt-3">Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a></p>
+{% endblock %}

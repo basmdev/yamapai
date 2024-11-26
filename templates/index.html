@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+    <h1 class="display-4 text-center mb-4">Привет, {{ current_user.username }}!</h1>
+    <div class="text-center">
+        <p><a class="btn btn-primary btn-lg" href="{{ url_for('profile') }}">Профиль</a></p>
+        <p><a class="btn btn-danger btn-lg" href="{{ url_for('logout') }}">Выход</a></p>
+    </div>
+{% endblock %}
