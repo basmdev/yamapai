@@ -168,7 +168,7 @@ def delete_client(client_id):
 # Удаление файлов
 @app.route("/delete_file/<int:client_id>/<filename>", methods=["POST"])
 def delete_file(client_id, filename):
-    client_folder = os.path.join("static/uploads", str(client_id))
+    client_folder = os.path.join(app.config["UPLOAD_FOLDER"], str(client_id))
     file_path = os.path.join(client_folder, filename)
     try:
         if os.path.exists(file_path):
