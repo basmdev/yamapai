@@ -1,7 +1,8 @@
+import os
+
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
-from werkzeug.utils import secure_filename
 
 import config
 from forms import LoginForm, RegisterForm
@@ -11,6 +12,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
 app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = config.SQLALCHEMY_TRACK_MODIFICATIONS
+app.config["UPLOAD_FOLDER"] = config.UPLOAD_FOLDER
 
 db.init_app(app)
 
@@ -28,6 +30,11 @@ def unauthorized():
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
+
+
+# Проверка расширения файла
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() == "csv"
 
 
 # Главная страница
@@ -100,7 +107,7 @@ def logout():
     return redirect(url_for("login"))
 
 
-# Добавление клиента
+# # Добавление клиента
 @app.route("/add_client", methods=["GET", "POST"])
 @login_required
 def add_client():
@@ -109,10 +116,16 @@ def add_client():
         new_client = Client(name=name)
         db.session.add(new_client)
         db.session.commit()
-
+        client_id = new_client.id
+        file = request.files.get("file")
+        if file and allowed_file(file.filename):
+            client_folder = os.path.join(app.config["UPLOAD_FOLDER"], str(client_id))
+            if not os.path.exists(client_folder):
+                os.makedirs(client_folder)
+            file_path = os.path.join(client_folder, file.filename)
+            file.save(file_path)
         flash("Новый клиент добавлен", "success")
         return redirect(url_for("index"))
-
     return render_template("add_client.html")
 
 
@@ -122,14 +135,23 @@ def add_client():
 def edit_client(client_id):
     client = Client.query.get_or_404(client_id)
     if request.method == "POST":
-        name = request.form.get("name")
-        if name:
-            client.name = name
-            db.session.commit()
-            flash("Клиент успешно изменен", "success")
+        client.name = request.form.get("name")
+        db.session.commit()
+        file = request.files.get("file")
+        if file and allowed_file(file.filename):
+            client_folder = os.path.join(app.config["UPLOAD_FOLDER"], str(client.id))
+            if not os.path.exists(client_folder):
+                os.makedirs(client_folder)
+            file_path = os.path.join(client_folder, file.filename)
+            file.save(file_path)
+        flash("Клиент обновлен", "success")
         return redirect(url_for("index"))
-
-    return render_template("edit_client.html", client=client)
+    client_folder = os.path.join(app.config["UPLOAD_FOLDER"], str(client.id))
+    if os.path.exists(client_folder):
+        files = os.listdir(client_folder)
+    else:
+        files = []
+    return render_template("edit_client.html", client=client, files=files)
 
 
 # Удаление клиента
@@ -141,6 +163,22 @@ def delete_client(client_id):
     db.session.commit()
     flash("Клиент успешно удален", "success")
     return redirect(url_for("index"))
+
+
+# Удаление файлов
+@app.route("/delete_file/<int:client_id>/<filename>", methods=["POST"])
+def delete_file(client_id, filename):
+    client_folder = os.path.join("static/uploads", str(client_id))
+    file_path = os.path.join(client_folder, filename)
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            flash(f"Файл {filename} удален", "success")
+        else:
+            flash(f"Файл {filename} не найден", "danger")
+    except Exception as e:
+        flash(f"Ошибка при удалении файла: {e}", "danger")
+    return redirect(url_for("edit_client", client_id=client_id))
 
 
 if __name__ == "__main__":

@@ -20,3 +20,12 @@ class User(UserMixin, db.Model):
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
+    client_data = db.relationship("ClientData", backref="client", lazy=True)
+
+
+class ClientData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    address = db.Column(db.String(255), nullable=False)
+    coordinates = db.Column(db.String(255), nullable=False)
+    request = db.Column(db.String(500), nullable=False)
+    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)

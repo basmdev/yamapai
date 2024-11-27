@@ -11,10 +11,28 @@
             <input type="text" class="form-control" id="name" name="name" value="{{ client.name }}" required maxlength="64">
         </div>
         <div class="form-group">
-            <label for="file">Загрузить CSV файл</label>
+            <label for="file">Прикрепление файла CSV</label>
             <input type="file" class="form-control-file" id="file" name="file" accept=".csv">
         </div>
         <button type="submit" class="btn btn-primary mt-3">Сохранить</button>
     </form>
+    <hr>
+    <h5>Прикрепленные файлы:</h5>
+    {% if files %}
+        <ul>
+            {% for file in files %}
+                <li>
+                    <a href="{{ url_for('static', filename='uploads/' ~ client.id ~ '/' ~ file) }}" target="_blank">
+                        {{ file }}
+                    </a>
+                    <form action="{{ url_for('delete_file', client_id=client.id, filename=file) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm ml-2"><i class="bi bi-trash"></i></button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет прикрепленных файлов</p>
+    {% endif %}
 </div>
 {% endblock %}
