@@ -1,10 +1,10 @@
-from flask import Flask, flash, redirect, render_template, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
 
 import config
 from forms import LoginForm, RegisterForm
-from models import User, db
+from models import Client, User, db
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
@@ -29,12 +29,15 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
+# Главная страница
 @app.route("/")
 @login_required
 def index():
-    return render_template("index.html")
+    clients = Client.query.all()
+    return render_template("index.html", clients=clients)
 
 
+# Регистрация пользователя
 @app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegisterForm()
@@ -58,11 +61,12 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         flash("Регистрация прошла успешно", "success")
-        return redirect(url_for("login"))
+        return redirect(url_for("index"))
 
     return render_template("register.html", form=form)
 
 
+# Вход пользователя
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
@@ -80,17 +84,35 @@ def login():
     return render_template("login.html", form=form)
 
 
+# Профиль пользователя
 @app.route("/profile")
 @login_required
 def profile():
     return render_template("profile.html", username=current_user.username)
 
 
+# Выход пользователя
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
     return redirect(url_for("login"))
+
+
+# Добавление клиента
+@app.route("/add_client", methods=["GET", "POST"])
+@login_required
+def add_client():
+    if request.method == "POST":
+        name = request.form.get("name")
+        new_client = Client(name=name)
+        db.session.add(new_client)
+        db.session.commit()
+
+        flash("Новый клиент добавлен", "success")
+        return redirect(url_for("index"))
+
+    return render_template("add_client.html")
 
 
 if __name__ == "__main__":
