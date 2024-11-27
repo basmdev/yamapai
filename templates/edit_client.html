@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Добавление клиента{% endblock %}
+{% block title %}Изменение клиента{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <p class="h4 text-center">Добавление нового клиента</p>
+    <p class="h4 text-center">Изменение клиента</p>
     <form method="POST" enctype="multipart/form-data">
         <div class="form-group">
             <label for="name">Наименование</label>
-            <input type="text" class="form-control" id="name" name="name" required maxlength="64">
+            <input type="text" class="form-control" id="name" name="name" value="{{ client.name }}" required maxlength="64">
         </div>
         <div class="form-group">
             <label for="file">Загрузить CSV файл</label>

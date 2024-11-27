@@ -1,6 +1,7 @@
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
+from werkzeug.utils import secure_filename
 
 import config
 from forms import LoginForm, RegisterForm
@@ -113,6 +114,33 @@ def add_client():
         return redirect(url_for("index"))
 
     return render_template("add_client.html")
+
+
+# Изменение клиента
+@app.route("/edit_client/<int:client_id>", methods=["GET", "POST"])
+@login_required
+def edit_client(client_id):
+    client = Client.query.get_or_404(client_id)
+    if request.method == "POST":
+        name = request.form.get("name")
+        if name:
+            client.name = name
+            db.session.commit()
+            flash("Клиент успешно изменен", "success")
+        return redirect(url_for("index"))
+
+    return render_template("edit_client.html", client=client)
+
+
+# Удаление клиента
+@app.route("/delete_client/<int:client_id>", methods=["POST"])
+@login_required
+def delete_client(client_id):
+    client = Client.query.get_or_404(client_id)
+    db.session.delete(client)
+    db.session.commit()
+    flash("Клиент успешно удален", "success")
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
