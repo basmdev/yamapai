@@ -18,11 +18,11 @@
                 {% if current_user.is_authenticated %}
                 <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                     <ul class="navbar-nav">
-                        {% if not request.path == '/add_client' %}
+                        {% if not request.path == 'profile' %}
                         <li class="nav-item me-2">
-                            <a class="nav-link text-muted" href="{{ url_for('add_client') }}" 
+                            <a class="nav-link text-muted" href="{{ url_for('profile') }}" 
                             onmouseover="this.classList.add('text-primary')" onmouseout="this.classList.remove('text-primary')">
-                            Добавить
+                            Профиль
                             </a>
                         </li>
                         {% endif %}

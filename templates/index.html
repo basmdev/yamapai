@@ -4,52 +4,11 @@
 
 {% block content %}
 <div class="container mt-4">
-    {% if not clients %}
-        <p class="h4 text-center">Нет добавленных клиентов</p>
+    {% if not client %}
+        <p class="h4 text-center">Добавьте данные в профиле</p>
+    {% else %}
+        <p><strong>Наименование:</strong> {{ client.name }}</p>
+        <p><strong>Загружен файл:</strong> {{ "True" if client.csv_file_path else "False" }}</p>
     {% endif %}
-    <div class="row">
-        {% for client in clients %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ client.name }}</h5>
-                        <hr class="my-3">
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ url_for('edit_client', client_id=client.id) }}" class="btn btn-primary btn-sm">Обновить</a>
-                            <div class="ml-auto">
-                                <a href="{{ url_for('edit_client', client_id=client.id) }}" class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ client.id }}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="deleteModal{{ client.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ client.id }}" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="deleteModalLabel{{ client.id }}">Подтверждение удаления</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            Удалить <b>{{ client.name }}</b>?
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                            <form method="POST" action="{{ url_for('delete_client', client_id=client.id) }}">
-                                <button type="submit" class="btn btn-danger">Удалить</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
 </div>
 {% endblock %}

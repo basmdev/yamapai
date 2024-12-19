@@ -6,6 +6,8 @@ db = SQLAlchemy()
 
 
 class User(UserMixin, db.Model):
+    """Модель пользователя."""
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
@@ -18,14 +20,8 @@ class User(UserMixin, db.Model):
 
 
 class Client(db.Model):
+    """Модель клиента."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
-    client_data = db.relationship("ClientData", backref="client", lazy=True)
-
-
-class ClientData(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    address = db.Column(db.String(255), nullable=False)
-    coordinates = db.Column(db.String(255), nullable=False)
-    request = db.Column(db.String(500), nullable=False)
-    client_id = db.Column(db.Integer, db.ForeignKey("client.id"), nullable=False)
+    csv_file_path = db.Column(db.String(256))

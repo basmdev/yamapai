@@ -1,8 +1,35 @@
 {% extends "base.html" %}
 
-{% block title %}Страница профиля{% endblock %}
+{% block title %}Профиль организации{% endblock %}
 
 {% block content %}
-    <h1>Профиль пользователя {{ username }}</h1>
-    <p><a href="{{ url_for('logout') }}">Выход</a></p>
+<div class="container mt-4">
+    <p class="h4 text-center">
+        {% if client %}
+            Редактирование организации
+        {% else %}
+            Добавление новой организации
+        {% endif %}
+    </p>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="name" class="font-weight-bold">Наименование</label>
+            <input type="text" class="form-control" id="name" name="name" 
+                   value="{{ name if name else client.name if client else '' }}" required maxlength="64">
+        </div>
+        <div class="form-group">
+            <label for="file" class="font-weight-bold">
+                {% if file_exists %}
+                    Обновить данные CSV
+                {% else %}
+                    Прикрепить данные CSV
+                {% endif %}
+            </label>
+            <input type="file" class="form-control-file" id="file" name="file" accept=".csv">
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">
+            Сохранить
+        </button>
+    </form>
+</div>
 {% endblock %}
