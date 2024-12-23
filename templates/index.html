@@ -7,8 +7,13 @@
     {% if not client %}
         <p class="h4 text-center">Добавьте данные в профиле</p>
     {% else %}
-        <p><strong>Наименование:</strong> {{ client.name }}</p>
-        <p><strong>Загружен файл:</strong> {{ "True" if client.csv_file_path else "False" }}</p>
+        <p><strong>Наименование: </strong>{{ client.name }}</p>
+        <p><strong>Последнее обновление CSV: </strong>{% if client.created_at %}
+            {{ client.created_at.strftime('%d.%m.%Y, %H:%M') }}
+        {% else %}
+            Файл еще не загружен
+        {% endif %}</p>
+        <p><strong>Текущий статус: </strong><p>
     {% endif %}
 </div>
 {% endblock %}

@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from flask import Flask, flash, redirect, render_template, request, url_for
@@ -61,12 +62,7 @@ def profile():
 
         if not name:
             flash("Наименование обязательно для заполнения", "danger")
-            return render_template(
-                "profile.html",
-                client=client,
-                name=name,
-                file_exists=bool(client and client.csv_file_path),
-            )
+            return render_template("profile.html", client=client)
 
         if file and file.filename.endswith(".csv"):
             client_folder = app.config["UPLOAD_FOLDER"]
@@ -79,8 +75,14 @@ def profile():
             new_file_path = os.path.join(client_folder, "data.csv")
             file.save(new_file_path)
 
-            client.name = name
-            client.csv_file_path = new_file_path
+            if not client:
+                client = Client(name=name, csv_file_path=new_file_path)
+                db.session.add(client)
+            else:
+                client.name = name
+                client.csv_file_path = new_file_path
+
+            client.created_at = datetime.datetime.now()
             flash("Изменения в профиле сохранены", "success")
         else:
             if client:
@@ -94,8 +96,7 @@ def profile():
         db.session.commit()
         return redirect(url_for("index"))
 
-    file_exists = bool(client and client.csv_file_path)
-    return render_template("profile.html", client=client, file_exists=file_exists)
+    return render_template("profile.html", client=client)
 
 
 @app.route("/")
