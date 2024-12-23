@@ -27,3 +27,13 @@ class Client(db.Model):
     name = Column(String(64), nullable=False)
     csv_file_path = Column(String(256), nullable=True)
     created_at = Column(DateTime, default=None)
+
+
+class Affiliate(db.Model):
+    """Модель филиала."""
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64), nullable=False)
+    latitude = Column(String(64), nullable=False)
+    longitude = Column(String(64), nullable=False)
+    comment = Column(String(64), nullable=False)

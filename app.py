@@ -1,3 +1,4 @@
+import csv
 import datetime
 import os
 
@@ -7,7 +8,7 @@ from flask_login import (LoginManager, current_user, login_required,
 
 import config
 from forms import LoginForm
-from models import Client, User, db
+from models import Affiliate, Client, User, db
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
@@ -50,6 +51,21 @@ def load_user(user_id):
     return db.session.get(User, int(user_id))
 
 
+def process_csv_file(file_path):
+    """Функция для обработки CSV файла."""
+    with open(file_path, mode="r", newline="", encoding="utf-8-sig") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            affiliate = Affiliate(
+                name=row["name"],
+                latitude=row["latitude"],
+                longitude=row["longitude"],
+                comment=row["comment"],
+            )
+            db.session.add(affiliate)
+    db.session.commit()
+
+
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
@@ -64,39 +80,72 @@ def profile():
             flash("Наименование обязательно для заполнения", "danger")
             return render_template("profile.html", client=client)
 
-        if file and file.filename.endswith(".csv"):
-            client_folder = app.config["UPLOAD_FOLDER"]
+        client_folder = app.config["UPLOAD_FOLDER"]
+        data_file_path = os.path.join(client_folder, "data.csv")
+
+        if file:
+            file_extension = os.path.splitext(file.filename)[1].lower()
+            if file_extension != ".csv":
+                flash("Неверный формат файла", "danger")
+                return render_template("profile.html", client=client)
+
             os.makedirs(client_folder, exist_ok=True)
+            temp_file_path = os.path.join(client_folder, "temp.csv")
 
-            for existing_file in os.listdir(client_folder):
-                file_path = os.path.join(client_folder, existing_file)
-                os.remove(file_path)
+            try:
+                file.save(temp_file_path)
 
-            new_file_path = os.path.join(client_folder, "data.csv")
-            file.save(new_file_path)
+                db.session.query(Affiliate).delete()
+                db.session.commit()
 
-            if not client:
-                client = Client(name=name, csv_file_path=new_file_path)
-                db.session.add(client)
-            else:
-                client.name = name
-                client.csv_file_path = new_file_path
+                process_csv_file(temp_file_path)
 
-            client.created_at = datetime.datetime.now()
-            flash("Изменения в профиле сохранены", "success")
+                if os.path.exists(data_file_path):
+                    os.remove(data_file_path)
+
+                os.rename(temp_file_path, data_file_path)
+
+                if client:
+                    client.name = name
+                    client.csv_file_path = data_file_path
+                    client.created_at = datetime.datetime.now()
+                else:
+                    client = Client(
+                        name=name,
+                        csv_file_path=data_file_path,
+                        created_at=datetime.datetime.now(),
+                    )
+                    db.session.add(client)
+
+                db.session.commit()
+                flash("Данные изменены успешно", "success")
+            except KeyError:
+                if os.path.exists(data_file_path):
+                    process_csv_file(data_file_path)
+
+                os.remove(temp_file_path)
+                flash("Ошибка в структуре файла CSV", "danger")
+            except Exception as e:
+                if os.path.exists(data_file_path):
+                    process_csv_file(data_file_path)
+
+                os.remove(temp_file_path)
+                flash(f"Неизвестная ошибка, данные не изменены", "danger")
+
+            return redirect(url_for("index"))
+
+        if client:
+            client.name = name
         else:
-            if client:
-                client.name = name
-                flash("Изменения в профиле сохранены", "success")
-            else:
-                client = Client(name=name)
-                db.session.add(client)
-                flash("Изменения в профиле сохранены", "success")
+            client = Client(name=name)
+            db.session.add(client)
 
         db.session.commit()
+        flash("Данные изменены успешно", "success")
         return redirect(url_for("index"))
 
-    return render_template("profile.html", client=client)
+    file_exists = bool(client and client.csv_file_path)
+    return render_template("profile.html", client=client, file_exists=file_exists)
 
 
 @app.route("/")
