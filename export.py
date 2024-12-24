@@ -1,7 +1,8 @@
-import openpyxl
-from openpyxl.utils import get_column_letter
 import os
 from datetime import datetime
+
+import openpyxl
+from openpyxl.utils import get_column_letter
 
 # Пример данных
 data = [
@@ -10,16 +11,17 @@ data = [
         "mapurl": "url",
         "zoom": "maszoom",
         "screen": "screenshot",
-        "airesponse": "response"
+        "airesponse": "response",
     },
     {
         "name": "filial_nme",
         "mapurl": "ul",
         "zoom": "mazoom",
         "screen": "screshot",
-        "airesponse": "reponse"
-    }
+        "airesponse": "reponse",
+    },
 ]
+
 
 def create_excel_report(data):
     """Создание отчета в формате Excel."""
@@ -28,7 +30,7 @@ def create_excel_report(data):
     ws.title = "Данные"
 
     headers = data[0].keys()
-    
+
     for col, header in enumerate(headers, start=1):
         ws.cell(row=1, column=col, value=header)
 
@@ -37,7 +39,7 @@ def create_excel_report(data):
             ws.cell(row=row, column=col, value=entry[header])
 
     for col, header in enumerate(headers, start=1):
-        column_width = max(len(str(entry.get(header, ''))) for entry in data) + 2
+        column_width = max(len(str(entry.get(header, ""))) for entry in data) + 2
         ws.column_dimensions[get_column_letter(col)].width = column_width
 
     reports_dir = "reports"
