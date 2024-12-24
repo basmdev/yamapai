@@ -1,6 +1,6 @@
 import csv
-import datetime
 import os
+from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import (LoginManager, current_user, login_required,
@@ -108,12 +108,12 @@ def profile():
                 if client:
                     client.name = name
                     client.csv_file_path = data_file_path
-                    client.created_at = datetime.datetime.now()
+                    client.created_at = datetime.now()
                 else:
                     client = Client(
                         name=name,
                         csv_file_path=data_file_path,
-                        created_at=datetime.datetime.now(),
+                        created_at=datetime.now(),
                     )
                     db.session.add(client)
 

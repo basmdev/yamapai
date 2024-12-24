@@ -1,22 +1,24 @@
 import smtplib
+from datetime import datetime
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import config
 
-def send_email(
-    sender_email,
-    receiver_email,
-    subject,
-    body,
-    file_path,
-    smtp_server,
-    smtp_port,
-    smtp_user,
-    smtp_password,
-):
+
+def send_email(file_path):
     """Отправка письма с вложением."""
+    sender_email = config.SENDER_EMAIL
+    receiver_email = config.RECEIVER_EMAIL
+    smtp_server = config.SMTP_SERVER
+    smtp_port = config.SMTP_PORT
+    smtp_user = config.SMTP_USER
+    smtp_password = config.SMTP_PASS
+    subject = f"Отчет за {datetime.now().strftime("%d.%m.%Y")}"
+    body = "Проверка выполнена сервисом YamapAI"
+
     msg = MIMEMultipart()
     msg["From"] = sender_email
     msg["To"] = receiver_email
@@ -43,26 +45,3 @@ def send_email(
         print("Письмо успешно отправлено")
     except Exception as e:
         print(f"Произошла ошибка: {e}")
-
-
-sender_email = "mail@gmail.com"
-receiver_email = "mail@gmail.com"
-subject = "Тема письма"
-body = "Текст письма"
-file_path = "./reports/report.xlsx"
-smtp_server = "smtp.gmail.com"
-smtp_port = 587
-smtp_user = "mail@gmail.com"
-smtp_password = "cifxjtvbuzzajhxu"
-
-send_email(
-    sender_email,
-    receiver_email,
-    subject,
-    body,
-    file_path,
-    smtp_server,
-    smtp_port,
-    smtp_user,
-    smtp_password,
-)
