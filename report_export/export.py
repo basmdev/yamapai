@@ -4,24 +4,6 @@ from datetime import datetime
 import openpyxl
 from openpyxl.utils import get_column_letter
 
-# Пример данных
-data = [
-    {
-        "name": "filial_name",
-        "mapurl": "url",
-        "zoom": "maszoom",
-        "screen": "screenshot",
-        "airesponse": "response",
-    },
-    {
-        "name": "filial_nme",
-        "mapurl": "ul",
-        "zoom": "mazoom",
-        "screen": "screshot",
-        "airesponse": "reponse",
-    },
-]
-
 
 def create_excel_report(data):
     """Создание отчета в формате Excel."""
@@ -50,3 +32,21 @@ def create_excel_report(data):
     filename = os.path.join(reports_dir, f"report_{current_time}.xlsx")
 
     wb.save(filename)
+
+
+# data = [
+#     {
+#         "name": "filial_name",
+#         "mapurl": "url",
+#         "zoom": "maszoom",
+#         "screen": "screenshot",
+#         "airesponse": "response",
+#     },
+#     {
+#         "name": "filial_nme",
+#         "mapurl": "ul",
+#         "zoom": "mazoom",
+#         "screen": "screshot",
+#         "airesponse": "reponse",
+#     },
+# ]

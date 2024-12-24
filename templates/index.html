@@ -8,6 +8,7 @@
         <p class="h4 text-center">Добавьте данные в профиле</p>
     {% else %}
         <p><strong>Наименование: </strong>{{ client.name }}</p>
+        <p><strong>Частота проверки: </strong>Каждые {{ client.check_frequency }} часов</p>
         <p><strong>Последнее обновление CSV: </strong>{% if client.created_at %}
             {{ client.created_at.strftime('%d.%m.%Y, %H:%M') }}
         {% else %}

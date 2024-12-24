@@ -27,6 +27,7 @@ class Client(db.Model):
     name = Column(String(64), nullable=False)
     csv_file_path = Column(String(256), nullable=True)
     created_at = Column(DateTime, default=None)
+    check_frequency = Column(Integer)
 
 
 class Affiliate(db.Model):

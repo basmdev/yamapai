@@ -75,9 +75,14 @@ def profile():
     if request.method == "POST":
         name = request.form.get("name")
         file = request.files.get("file")
+        period = request.form.get("period", type=int)
 
         if not name:
             flash("Наименование обязательно для заполнения", "danger")
+            return render_template("profile.html", client=client)
+
+        if not period:
+            flash("Частота проверки обязательна для заполнения", "danger")
             return render_template("profile.html", client=client)
 
         client_folder = app.config["UPLOAD_FOLDER"]
@@ -109,11 +114,13 @@ def profile():
                     client.name = name
                     client.csv_file_path = data_file_path
                     client.created_at = datetime.now()
+                    client.check_frequency = period
                 else:
                     client = Client(
                         name=name,
                         csv_file_path=data_file_path,
                         created_at=datetime.now(),
+                        check_frequency=period,
                     )
                     db.session.add(client)
 
@@ -136,8 +143,9 @@ def profile():
 
         if client:
             client.name = name
+            client.check_frequency = period
         else:
-            client = Client(name=name)
+            client = Client(name=name, check_frequency=period)
             db.session.add(client)
 
         db.session.commit()

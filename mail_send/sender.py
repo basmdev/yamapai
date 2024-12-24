@@ -16,7 +16,7 @@ def send_email(file_path):
     smtp_port = config.SMTP_PORT
     smtp_user = config.SMTP_USER
     smtp_password = config.SMTP_PASS
-    subject = f"Отчет за {datetime.now().strftime("%d.%m.%Y")}"
+    subject = f"Отчет за {datetime.now().strftime('%d.%m.%Y')}"
     body = "Проверка выполнена сервисом YamapAI"
 
     msg = MIMEMultipart()
