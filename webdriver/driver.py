@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 
 
 def get_screenshots(links, num_threads=1):
-    """ "Сохраняет скриншоты и возвращает список необработанных ссылок."""
+    """Сохраняет скриншоты и возвращает список необработанных ссылок."""
     pause_event = threading.Event()
     pause_event.set()
 
