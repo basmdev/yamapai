@@ -15,6 +15,11 @@
             Файл еще не загружен
         {% endif %}</p>
         <p><strong>Текущий статус: </strong>Неизвестно<p>
+        {% if client.created_at %}
+            <div class="mt-4 text-center">
+                <a href="#" class="btn btn-primary">Кнопка</a>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}

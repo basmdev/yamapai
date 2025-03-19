@@ -56,10 +56,9 @@ def process_csv_file(file_path):
         reader = csv.DictReader(csvfile)
         for row in reader:
             affiliate = Affiliate(
-                name=row["name"],
-                latitude=row["latitude"],
-                longitude=row["longitude"],
-                comment=row["comment"],
+                address=row["address"],
+                longitude=row["lon"],
+                latitude=row["lat"],
             )
             db.session.add(affiliate)
     db.session.commit()
