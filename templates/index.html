@@ -14,10 +14,12 @@
         {% else %}
             Файл еще не загружен
         {% endif %}</p>
-        <p><strong>Текущий статус: </strong>Неизвестно<p>
+        <p><strong>Текущий статус: </strong><span id="status">{{ client.progress }}</span></p>
         {% if client.created_at %}
-            <div class="mt-4 text-center">
-                <a href="#" class="btn btn-primary">Кнопка</a>
+            <div class="mt-4 text-left">
+                <form action="{{ url_for('start_check') }}" method="POST">
+                    <button type="submit" class="btn btn-primary">Запустить проверку</button>
+                </form>
             </div>
         {% endif %}
     {% endif %}

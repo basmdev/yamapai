@@ -1,6 +1,9 @@
+import asyncio
 import csv
 import os
 from datetime import datetime
+import threading
+import time
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, login_required, login_user, logout_user
@@ -9,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 import config
 from forms import LoginForm
 from models import Affiliate, Client, Keyword, User, db
+from webdriver.driver import get_screenshots
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
@@ -194,6 +198,33 @@ def login():
             flash("Неверное имя пользователя или пароль", "danger")
 
     return render_template("login.html", form=form)
+
+
+def run_check_in_background(links):
+    """Проверка в фоновом потоке."""
+    with app.app_context():
+        client = Client.query.first()
+        client.progress = "Получение снимков карты..."
+        db.session.commit()
+
+        get_screenshots(links)
+
+        client.progress = "Снимки получены, проверка AI..."
+        db.session.commit()
+
+        client.progress = "Проверка завершена"
+        db.session.commit() 
+
+
+@app.route("/start_check", methods=["POST"])
+@login_required
+def start_check():
+    """Запуск проверки в фоновом потоке."""
+    links = []
+
+    threading.Thread(target=run_check_in_background, args=(links,)).start()
+
+    return redirect(url_for("index"))
 
 
 @app.route("/logout")
