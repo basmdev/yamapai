@@ -30,6 +30,13 @@ class Client(db.Model):
     check_frequency = Column(Integer)
 
 
+class Keyword(db.Model):
+    """Модель ключевых слов."""
+
+    id = Column(Integer, primary_key=True)
+    word = Column(String(64), nullable=False)
+
+
 class Affiliate(db.Model):
     """Модель филиала."""
 

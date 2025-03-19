@@ -4,10 +4,11 @@ from datetime import datetime
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, login_required, login_user, logout_user
+from sqlalchemy.exc import IntegrityError
 
 import config
 from forms import LoginForm
-from models import Affiliate, Client, User, db
+from models import Affiliate, Client, Keyword, User, db
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
@@ -74,6 +75,7 @@ def profile():
         name = request.form.get("name")
         file = request.files.get("file")
         period = request.form.get("period", type=int)
+        keywords_text = request.form.get("keywords", "").strip()
 
         if not name:
             flash("Наименование обязательно для заполнения", "danger")
@@ -130,12 +132,12 @@ def profile():
 
                 os.remove(temp_file_path)
                 flash("Ошибка в структуре файла CSV", "danger")
+            except IntegrityError as e:
+                db.session.rollback()
+                flash("Ошибка в структуре файла CSV", "danger")
             except Exception as e:
-                if os.path.exists(data_file_path):
-                    process_csv_file(data_file_path)
-
-                os.remove(temp_file_path)
-                flash(f"Неизвестная ошибка, данные не изменены", "danger")
+                db.session.rollback()
+                flash(f"Неизвестная ошибка", "danger")
 
             return redirect(url_for("index"))
 
@@ -147,11 +149,25 @@ def profile():
             db.session.add(client)
 
         db.session.commit()
+
+        db.session.query(Keyword).delete()
+        if keywords_text:
+            keywords_list = [
+                word.strip() for word in keywords_text.split(",") if word.strip()
+            ]
+            for word in keywords_list:
+                db.session.add(Keyword(word=word))
+
+        db.session.commit()
         flash("Данные изменены успешно", "success")
         return redirect(url_for("index"))
 
     file_exists = bool(client and client.csv_file_path)
-    return render_template("profile.html", client=client, file_exists=file_exists)
+    keywords = ", ".join([keyword.word for keyword in Keyword.query.all()])
+
+    return render_template(
+        "profile.html", client=client, file_exists=file_exists, keywords=keywords
+    )
 
 
 @app.route("/")
