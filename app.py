@@ -132,6 +132,19 @@ def profile():
                     db.session.add(client)
 
                 db.session.commit()
+
+                db.session.query(Keyword).delete()
+                if keywords_text:
+                    keywords_list = [
+                        word.strip()
+                        for word in keywords_text.split(",")
+                        if word.strip()
+                    ]
+                    for word in keywords_list:
+                        db.session.add(Keyword(word=word))
+
+                db.session.commit()
+
                 flash("Данные изменены успешно", "success")
             except KeyError:
                 if os.path.exists(data_file_path):
@@ -166,6 +179,7 @@ def profile():
                 db.session.add(Keyword(word=word))
 
         db.session.commit()
+
         flash("Данные изменены успешно", "success")
         return redirect(url_for("index"))
 
@@ -233,6 +247,7 @@ def start_check():
     """Запуск проверки в фоновом потоке."""
     links = generate_urls(ZOOMS)
     threading.Thread(target=run_check_in_background, args=(links,)).start()
+    flash("Проверка запущена", "success")
 
     return redirect(url_for("index"))
 
