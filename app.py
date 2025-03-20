@@ -130,7 +130,7 @@ def profile():
                         csv_file_path=data_file_path,
                         created_at=datetime.now(),
                         check_frequency=period,
-                        auto_check=auto_check,
+                        auto_check=auto_check
                     )
                     db.session.add(client)
 
@@ -263,9 +263,19 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
+def check_auto_check():
+    with app.app_context():
+        client = Client.query.first()
+        if client.auto_check:
+            print("Трууу")
+        else:
+            print('Фооолс')
+        threading.Timer(10.0, check_auto_check).start()
+
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         create_initial_user()
+    threading.Thread(target=check_auto_check, daemon=True).start()
     app.run(debug=True)

@@ -8,7 +8,6 @@
         <p class="h4 text-center">Добавьте данные в профиле</p>
     {% else %}
         <p><strong>Наименование: </strong>{{ client.name }}</p>
-        <p><strong>Частота проверки: </strong>Каждые {{ client.check_frequency }} часов</p>
         <p><strong>Последнее обновление CSV: </strong>
             {% if client.created_at %}
                 {{ client.created_at.strftime('%d.%m.%Y, %H:%M') }}
@@ -16,10 +15,12 @@
                 Файл еще не загружен
             {% endif %}
         </p>
-        {% if client.created_at %}
+        <p><strong>Частота проверки: </strong>Каждые {{ client.check_frequency }} часов</p>
+        <p><strong>Автоматическая проверка: </strong>{% if client.auto_check %}Включена{% else %}Отключена{% endif %}</p>
+        {% if client.created_at and not client.auto_check %}
             <div class="mt-4 text-left">
                 <form action="{{ url_for('start_check') }}" method="POST">
-                    <button type="submit" class="btn btn-primary">Запустить проверку</button>
+                    <button type="submit" class="btn btn-primary">Запустить проверку вручную</button>
                 </form>
             </div>
         {% endif %}
@@ -28,7 +29,7 @@
         {% endif %}
         {% if affiliates %}
             <div class="mt-5">
-                <h4>Список филиалов</h4>
+                <h4>Список адресов</h4>
                 <table class="table table-striped">
                     <thead>
                         <tr>
