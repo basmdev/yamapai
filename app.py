@@ -1,9 +1,9 @@
-import asyncio
 import csv
 import os
-from datetime import datetime
 import threading
-import time
+import urllib
+from datetime import datetime
+from itertools import product
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, login_required, login_user, logout_user
@@ -25,6 +25,9 @@ db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
+
+ZOOMS = [10, 15, 20]
 
 
 def create_initial_user():
@@ -179,7 +182,11 @@ def profile():
 def index():
     """Главная страница."""
     client = Client.query.first()
-    return render_template("index.html", client=client)
+    affiliates = Affiliate.query.all()
+    keywords = Keyword.query.all()
+    return render_template(
+        "index.html", client=client, affiliates=affiliates, keywords=keywords
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -202,26 +209,29 @@ def login():
 
 def run_check_in_background(links):
     """Проверка в фоновом потоке."""
-    with app.app_context():
-        client = Client.query.first()
-        client.progress = "Получение снимков карты..."
-        db.session.commit()
+    get_screenshots(links)
 
-        get_screenshots(links)
+    # Тут будет вызов функции проверки скриншотов
 
-        client.progress = "Снимки получены, проверка AI..."
-        db.session.commit()
 
-        client.progress = "Проверка завершена"
-        db.session.commit() 
+def generate_urls(ZOOM):
+    """Генерация списка ссылок."""
+    base_url = "https://yandex.ru/maps/?"
+
+    affiliates = [(a.longitude, a.latitude) for a in Affiliate.query.all()]
+    keywords = [k.word for k in Keyword.query.all()]
+
+    return [
+        f"{base_url}{urllib.parse.urlencode({'ll': f'{lon},{lat}', 'z': zoom, 'text': keyword}, safe=',')}"
+        for (lon, lat), keyword, zoom in product(affiliates, keywords, ZOOM)
+    ]
 
 
 @app.route("/start_check", methods=["POST"])
 @login_required
 def start_check():
     """Запуск проверки в фоновом потоке."""
-    links = []
-
+    links = generate_urls(ZOOMS)
     threading.Thread(target=run_check_in_background, args=(links,)).start()
 
     return redirect(url_for("index"))

@@ -2,8 +2,24 @@ import os
 import queue
 import threading
 import time
+import urllib.parse
 
 from playwright.sync_api import sync_playwright
+
+
+def sanitize_filename(url):
+    """Формирует имя файла по параметрам."""
+    parsed_url = urllib.parse.urlparse(url)
+    query_params = urllib.parse.parse_qs(parsed_url.query)
+
+    lat_lon = query_params.get("ll", [""])[0].replace(",", "_")
+    text = query_params.get("text", [""])[0]
+    zoom = query_params.get("z", [""])[0]
+
+    filename_parts = [lat_lon, text, zoom]
+    filename = "_".join(filter(None, filename_parts))
+
+    return filename[:100]
 
 
 def get_screenshots(links, num_threads=1):
@@ -15,13 +31,12 @@ def get_screenshots(links, num_threads=1):
     failed_links_lock = threading.Lock()
 
     screenshot_dir = "screenshots"
+    if not os.path.exists(screenshot_dir):
+        os.makedirs(screenshot_dir)
 
     task_queue = queue.Queue()
     for link in links:
         task_queue.put(link)
-
-    if not os.path.exists(screenshot_dir):
-        os.makedirs(screenshot_dir)
 
     def browser_worker(task_queue, browser_id):
         while not task_queue.empty():
@@ -32,7 +47,7 @@ def get_screenshots(links, num_threads=1):
                         args=["--disable-blink-features=AutomationControlled"],
                     )
                     context = browser.new_context(
-                        viewport={"width": 800, "height": 800}
+                        viewport={"width": 1280, "height": 720}
                     )
                     page = context.new_page()
 
@@ -68,10 +83,15 @@ def get_screenshots(links, num_threads=1):
                                 content=".popup { display: none !important; }"
                             )
                             time.sleep(10)
-                            screenshot_name = f"{browser_id}_{int(time.time())}.png"
-                            page.screenshot(
-                                path=os.path.join(screenshot_dir, screenshot_name)
+
+                            safe_filename = sanitize_filename(link)
+                            screenshot_name = f"{safe_filename}.png"
+                            screenshot_path = os.path.join(
+                                screenshot_dir, screenshot_name
                             )
+
+                            page.screenshot(path=screenshot_path)
+
                         except Exception as task_error:
                             print(
                                 f"Ошибка при обработке задания в браузере {browser_id}: {task_error}"

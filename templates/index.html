@@ -9,18 +9,47 @@
     {% else %}
         <p><strong>Наименование: </strong>{{ client.name }}</p>
         <p><strong>Частота проверки: </strong>Каждые {{ client.check_frequency }} часов</p>
-        <p><strong>Последнее обновление CSV: </strong>{% if client.created_at %}
-            {{ client.created_at.strftime('%d.%m.%Y, %H:%M') }}
-        {% else %}
-            Файл еще не загружен
-        {% endif %}</p>
-        <p><strong>Текущий статус: </strong><span id="status">{{ client.progress }}</span></p>
+        <p><strong>Последнее обновление CSV: </strong>
+            {% if client.created_at %}
+                {{ client.created_at.strftime('%d.%m.%Y, %H:%M') }}
+            {% else %}
+                Файл еще не загружен
+            {% endif %}
+        </p>
         {% if client.created_at %}
             <div class="mt-4 text-left">
                 <form action="{{ url_for('start_check') }}" method="POST">
                     <button type="submit" class="btn btn-primary">Запустить проверку</button>
                 </form>
             </div>
+        {% endif %}
+        {% if not keywords %}
+            <p class="text-center text-danger">Добавьте ключевые слова в профиле</p>
+        {% endif %}
+        {% if affiliates %}
+            <div class="mt-5">
+                <h4>Список филиалов</h4>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Адрес</th>
+                            <th>Результат</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for affiliate in affiliates %}
+                            <tr>
+                                <td>{{ affiliate.id }}</td>
+                                <td>{{ affiliate.address }}</td>
+                                <td>Результат</td>  <!-- Здесь будет реальный результат позже -->
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-center text-danger">Загрузите филиалы в профиле</p>
         {% endif %}
     {% endif %}
 </div>

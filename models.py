@@ -28,7 +28,6 @@ class Client(db.Model):
     csv_file_path = Column(String(256), nullable=True)
     created_at = Column(DateTime, default=None)
     check_frequency = Column(Integer)
-    progress = Column(String(64), default="Неизвестно")
 
 
 class Keyword(db.Model):
