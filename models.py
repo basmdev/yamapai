@@ -1,6 +1,6 @@
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
@@ -27,7 +27,8 @@ class Client(db.Model):
     name = Column(String(64), nullable=False)
     csv_file_path = Column(String(256), nullable=True)
     created_at = Column(DateTime, default=None)
-    check_frequency = Column(Integer)
+    check_frequency = Column(Integer, nullable=True)
+    auto_check = Column(Boolean, default=False)
 
 
 class Keyword(db.Model):

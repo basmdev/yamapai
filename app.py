@@ -82,6 +82,7 @@ def profile():
         name = request.form.get("name")
         file = request.files.get("file")
         period = request.form.get("period", type=int)
+        auto_check = True if request.form.get("auto_check") else False
         keywords_text = request.form.get("keywords", "").strip()
 
         if not name:
@@ -122,12 +123,14 @@ def profile():
                     client.csv_file_path = data_file_path
                     client.created_at = datetime.now()
                     client.check_frequency = period
+                    client.auto_check = auto_check
                 else:
                     client = Client(
                         name=name,
                         csv_file_path=data_file_path,
                         created_at=datetime.now(),
                         check_frequency=period,
+                        auto_check=auto_check,
                     )
                     db.session.add(client)
 
@@ -164,8 +167,9 @@ def profile():
         if client:
             client.name = name
             client.check_frequency = period
+            client.auto_check = auto_check
         else:
-            client = Client(name=name, check_frequency=period)
+            client = Client(name=name, check_frequency=period, auto_check=auto_check)
             db.session.add(client)
 
         db.session.commit()

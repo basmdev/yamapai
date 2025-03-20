@@ -18,7 +18,6 @@
                    value="{{ client.name if client else '' }}" maxlength="64">
             <small class="form-text text-muted">Укажите наименование своей организации</small>
         </div>
-        
         <div class="form-group mt-4">
             <label for="period" class="font-weight-bold">Частота проверки</label>
             <div class="input-group">
@@ -30,13 +29,17 @@
             </div>
             <small class="form-text text-muted">Укажите частоту проверки в диапазоне от 8 до 168 часов</small>
         </div>
-
+        <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" id="auto_check" name="auto_check" {% if client and client.auto_check %}checked{% endif %}>
+            <label class="form-check-label" for="auto_check">
+                Включить автоматическую проверку
+            </label>
+        </div>
         <div class="form-group mt-4">
             <label for="keywords" class="font-weight-bold">Ключевые слова</label>
             <textarea class="form-control" id="keywords" name="keywords" rows="4" placeholder="Введите ключевые слова через запятую">{% if keywords %}{{ keywords }}{% endif %}</textarea>
             <small class="form-text text-muted">Введите ключевые слова, используемые при поиске</small>
         </div>        
-
         <div class="form-group">
             <label for="file" class="font-weight-bold">
                 {% if file_exists %}
@@ -53,7 +56,6 @@
                 Прикрепите файл CSV для загрузки данных
             {% endif %}</small>
         </div>
-
         <button type="submit" class="btn btn-primary mt-3">
             Сохранить
         </button>
