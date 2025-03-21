@@ -1,6 +1,7 @@
 import csv
 import os
 import threading
+import time
 import urllib
 from datetime import datetime
 from itertools import product
@@ -27,7 +28,8 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
-ZOOMS = [10, 15, 20]
+ZOOMS = [10]  # Масштабы карт для ссылок
+is_check_active = False  # Параметр автоматической проверки
 
 
 def create_initial_user():
@@ -130,7 +132,7 @@ def profile():
                         csv_file_path=data_file_path,
                         created_at=datetime.now(),
                         check_frequency=period,
-                        auto_check=auto_check
+                        auto_check=auto_check,
                     )
                     db.session.add(client)
 
@@ -227,7 +229,10 @@ def login():
 
 def run_check_in_background(links):
     """Проверка в фоновом потоке."""
+    global is_check_active
+
     get_screenshots(links)
+    is_check_active = False
 
     # Тут будет вызов функции проверки скриншотов
 
@@ -263,19 +268,26 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
-def check_auto_check():
-    with app.app_context():
-        client = Client.query.first()
-        if client.auto_check:
-            print("Трууу")
-        else:
-            print('Фооолс')
-        threading.Timer(10.0, check_auto_check).start()
+
+def background_checker():
+    """Проверка наличия параметра автоматической проверки."""
+    global is_check_active
+
+    while True:
+        with app.app_context():
+            client = Client.query.first()
+
+            if client.auto_check and not is_check_active:
+                links = generate_urls(ZOOMS)
+                threading.Thread(target=run_check_in_background, args=(links,)).start()
+                is_check_active = True
+
+        time.sleep(client.check_frequency * 3600)
 
 
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         create_initial_user()
-    threading.Thread(target=check_auto_check, daemon=True).start()
-    app.run(debug=True)
+    threading.Thread(target=background_checker, daemon=True).start()
+    app.run(debug=False)
