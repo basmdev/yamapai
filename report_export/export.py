@@ -36,17 +36,17 @@ def create_excel_report(data):
 
 # data = [
 #     {
-#         "name": "filial_name",
-#         "mapurl": "url",
-#         "zoom": "maszoom",
-#         "screen": "screenshot",
-#         "airesponse": "response",
+#         "address": "filial_address",
+#         "keyword": "keyword",
+#         "screenshot": "screen",
+#         "time": "time",
+#         "zoom": "zoom",
 #     },
 #     {
-#         "name": "filial_nme",
-#         "mapurl": "ul",
-#         "zoom": "mazoom",
-#         "screen": "screshot",
-#         "airesponse": "reponse",
+#         "address": "filial_address_2",
+#         "keyword": "keyword_2",
+#         "screenshot": "screen_2",
+#         "time": "time_2",
+#         "zoom": "zoom_2",
 #     },
 # ]
