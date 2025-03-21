@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import queue
 import threading
@@ -85,7 +86,8 @@ def get_screenshots(links, num_threads=1):
                             time.sleep(10)
 
                             safe_filename = sanitize_filename(link)
-                            screenshot_name = f"{safe_filename}.png"
+                            timestamp = datetime.now().strftime("%H%M%d%m%y")
+                            screenshot_name = f"{safe_filename}_{timestamp}.png"
                             screenshot_path = os.path.join(
                                 screenshot_dir, screenshot_name
                             )
