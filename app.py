@@ -28,7 +28,7 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
-ZOOMS = [10]  # Масштабы карт для ссылок
+ZOOMS = [12, 13, 14, 16]  # Масштабы карт для ссылок
 is_check_active = False  # Параметр автоматической проверки
 
 
