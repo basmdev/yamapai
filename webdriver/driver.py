@@ -22,8 +22,9 @@ def sanitize_filename(url):
 
     return lat_lon[:100], filename[:100]
 
+
 def get_screenshots(links, num_threads=1):
-    """Сохраняет скриншоты в подпапки по координатам."""
+    """Сохраняет скриншоты в папку с координатами и временем, файлы внутри имеют свое время."""
     pause_event = threading.Event()
     pause_event.set()
 
@@ -38,7 +39,8 @@ def get_screenshots(links, num_threads=1):
     for link in links:
         task_queue.put(link)
 
-    def browser_worker(task_queue, browser_id):
+    def browser_worker(task_queue, browser_id, main_timestamp):
+        """Рабочий поток для создания скриншотов."""
         while not task_queue.empty():
             try:
                 with sync_playwright() as p:
@@ -75,13 +77,14 @@ def get_screenshots(links, num_threads=1):
                             time.sleep(10)
 
                             lat_lon, safe_filename = sanitize_filename(link)
-                            timestamp = datetime.now().strftime("%H%M%d%m%y")
 
-                            screenshot_dir = os.path.join(base_screenshot_dir, lat_lon)
+                            screenshot_dir = os.path.join(base_screenshot_dir, f"{lat_lon}_{main_timestamp}")
                             if not os.path.exists(screenshot_dir):
                                 os.makedirs(screenshot_dir)
 
-                            screenshot_name = f"{safe_filename}_{timestamp}.png"
+                            screenshot_time = datetime.now().strftime("%H%M%S%d%m%y")
+
+                            screenshot_name = f"{safe_filename}_{screenshot_time}.png"
                             screenshot_path = os.path.join(screenshot_dir, screenshot_name)
 
                             page.screenshot(path=screenshot_path)
@@ -98,9 +101,11 @@ def get_screenshots(links, num_threads=1):
                 print(f"Ошибка в браузере {browser_id}, перезапуск: {e}")
                 time.sleep(2)
 
+    main_timestamp = datetime.now().strftime("%H%M%d%m%y")
+
     threads = []
     for browser_id in range(1, num_threads + 1):
-        thread = threading.Thread(target=browser_worker, args=(task_queue, browser_id))
+        thread = threading.Thread(target=browser_worker, args=(task_queue, browser_id, main_timestamp))
         threads.append(thread)
         thread.start()
 
