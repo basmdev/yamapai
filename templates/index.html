@@ -33,25 +33,30 @@
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Адрес</th>
-                            <th>Результат</th>
-                            <th>Время</th>
+                            <th class="text-center">№</th>
+                            <th class="text-center">Адрес</th>
+                            <th class="text-center">Результат</th>
+                            <th class="text-center">Время</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for affiliate in affiliates %}
                             <tr>
-                                <td>{{ affiliate.id }}</td>
-                                <td>{{ affiliate.address }}</td>
-                                <td class="{% if affiliate.result == 'Обнаружено' %}text-success{% else %}text-danger{% endif %}">
+                                <td class="text-center">{{ loop.index }}</td>
+                                <td class="text-center">{{ affiliate.address }}</td>
+                                <td class="text-center {% if affiliate.result == 'OK' %}text-success{% elif affiliate.result == 'Неизвестно' %}text-muted{% else %}text-danger{% endif %}">
                                     {{ affiliate.result }}
-                                </td>                                
-                                <td>{{ affiliate.check_time | custom_time_format }}</td>
+                                </td>
+                                <td class="text-center {% if affiliate.check_time == 'Неизвестно' %}text-muted{% endif %}">
+                                    {% if affiliate.check_time != 'Неизвестно' %}
+                                        {{ affiliate.check_time | custom_time_format }}
+                                    {% else %}
+                                        {{ affiliate.check_time }}
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
-                    </tbody>
+                    </tbody>                    
                 </table>
             </div>
         {% else %}

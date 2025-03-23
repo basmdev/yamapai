@@ -8,6 +8,7 @@ from itertools import product
 
 from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, login_required, login_user, logout_user
+from sqlalchemy import Integer, cast
 from sqlalchemy.exc import IntegrityError
 
 import config
@@ -223,8 +224,11 @@ def profile():
 def index():
     """Главная страница."""
     client = Client.query.first()
-    affiliates = Affiliate.query.all()
+    affiliates = Affiliate.query.order_by(
+        cast(Affiliate.check_time, Integer).desc()
+    ).all()
     keywords = Keyword.query.all()
+
     return render_template(
         "index.html", client=client, affiliates=affiliates, keywords=keywords
     )
@@ -277,7 +281,7 @@ def process_screenshot_folders():
 
             if affiliate:
                 affiliate.check_time = check_time
-                affiliate.result = "Обнаружено" if result else "Не обнаружено"
+                affiliate.result = "OK" if result else "Отсутствует POI"
                 db.session.commit()
             else:
                 print(f"Не найден филиал с координатами {longitude}, {latitude}")
@@ -334,12 +338,12 @@ def background_checker():
         with app.app_context():
             client = Client.query.first()
 
-            if client.auto_check and not is_check_active:
+            if client and client.auto_check and not is_check_active:
                 links = generate_urls(ZOOMS)
                 threading.Thread(target=run_check_in_background, args=(links,)).start()
                 is_check_active = True
-
-        time.sleep(client.check_frequency * 3600)
+        if client:
+            time.sleep(client.check_frequency * 3600)
 
 
 if __name__ == "__main__":
