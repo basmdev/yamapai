@@ -36,6 +36,7 @@
                             <th>ID</th>
                             <th>Адрес</th>
                             <th>Результат</th>
+                            <th>Время</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,7 +44,8 @@
                             <tr>
                                 <td>{{ affiliate.id }}</td>
                                 <td>{{ affiliate.address }}</td>
-                                <td>Результат</td>  <!-- Здесь будет реальный результат позже -->
+                                <td>{{ affiliate.result }}</td>
+                                <td>{{ affiliate.check_time }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

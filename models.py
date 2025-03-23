@@ -45,3 +45,5 @@ class Affiliate(db.Model):
     address = Column(String(64), nullable=False)
     longitude = Column(String(64), nullable=False)
     latitude = Column(String(64), nullable=False)
+    result = Column(String(64), nullable=False, default="Неизвестно")
+    check_time = Column(String(64), nullable=False, default="Неизвестно")
