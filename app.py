@@ -11,6 +11,7 @@ from flask_login import LoginManager, login_required, login_user, logout_user
 from sqlalchemy.exc import IntegrityError
 
 import config
+from ai.yolo import analyze_images
 from forms import LoginForm
 from models import Affiliate, Client, Keyword, User, db
 from webdriver.driver import get_screenshots
@@ -45,6 +46,26 @@ def create_initial_user():
         admin.set_password(password)
         db.session.add(admin)
         db.session.commit()
+
+
+@app.template_filter("custom_time_format")
+def custom_time_format(value):
+    """Формат временной метки."""
+    try:
+        str_value = str(value)
+        if len(str_value) != 10:
+            return "Некорректный формат"
+
+        hours = str_value[:2]
+        minutes = str_value[2:4]
+        day = str_value[4:6]
+        month = str_value[6:8]
+        year = str_value[8:10]
+
+        formatted_time = f"{day}.{month}.{year}, {hours}:{minutes}"
+        return formatted_time
+    except Exception:
+        return "Некорректный формат"
 
 
 @login_manager.unauthorized_handler
@@ -227,11 +248,47 @@ def login():
     return render_template("login.html", form=form)
 
 
+def process_screenshot_folders():
+    """Обрабатывает папки со скриншотами, обновляет записи в базе."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_path = os.path.join(base_dir, "screenshots")
+
+    if not os.path.exists(base_path):
+        print("Папка screenshots не найдена.")
+        return
+
+    with app.app_context():
+        for folder_name in os.listdir(base_path):
+            folder_path = os.path.join(base_path, folder_name)
+
+            parts = folder_name.split("_")
+            if len(parts) < 3:
+                continue
+
+            longitude, latitude, check_time = parts[0], parts[1], parts[2]
+
+            result = analyze_images(folder_path)
+
+            affiliate = (
+                db.session.query(Affiliate)
+                .filter_by(longitude=longitude, latitude=latitude)
+                .first()
+            )
+
+            if affiliate:
+                affiliate.check_time = check_time
+                affiliate.result = "Обнаружено" if result else "Не обнаружено"
+                db.session.commit()
+            else:
+                print(f"Не найден филиал с координатами {longitude}, {latitude}")
+
+
 def run_check_in_background(links):
     """Проверка в фоновом потоке."""
     global is_check_active
 
     get_screenshots(links)
+    process_screenshot_folders()
     is_check_active = False
 
     # Тут будет вызов функции проверки скриншотов

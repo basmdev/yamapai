@@ -1,9 +1,9 @@
-from datetime import datetime
 import os
 import queue
 import threading
 import time
 import urllib.parse
+from datetime import datetime
 
 from playwright.sync_api import sync_playwright
 
@@ -48,7 +48,9 @@ def get_screenshots(links, num_threads=1):
                         headless=False,
                         args=["--disable-blink-features=AutomationControlled"],
                     )
-                    context = browser.new_context(viewport={"width": 1280, "height": 720})
+                    context = browser.new_context(
+                        viewport={"width": 1280, "height": 720}
+                    )
                     page = context.new_page()
 
                     while not task_queue.empty():
@@ -59,9 +61,13 @@ def get_screenshots(links, num_threads=1):
                             page.goto(link, wait_until="load")
                             time.sleep(1)
 
-                            captcha_text = "Подтвердите, что запросы отправляли вы, а не робот"
+                            captcha_text = (
+                                "Подтвердите, что запросы отправляли вы, а не робот"
+                            )
                             if captcha_text in page.content():
-                                print(f"Обнаружена капча в браузере {browser_id}, задания приостановлены")
+                                print(
+                                    f"Обнаружена капча в браузере {browser_id}, задания приостановлены"
+                                )
                                 pause_event.clear()
                                 time.sleep(3600)
                                 pause_event.set()
@@ -71,26 +77,36 @@ def get_screenshots(links, num_threads=1):
 
                             page.click(".sidebar-toggle-button")
                             time.sleep(1)
-                            page.add_style_tag(content=".app { display: none !important; }")
+                            page.add_style_tag(
+                                content=".app { display: none !important; }"
+                            )
                             time.sleep(1)
-                            page.add_style_tag(content=".popup { display: none !important; }")
+                            page.add_style_tag(
+                                content=".popup { display: none !important; }"
+                            )
                             time.sleep(10)
 
                             lat_lon, safe_filename = sanitize_filename(link)
 
-                            screenshot_dir = os.path.join(base_screenshot_dir, f"{lat_lon}_{main_timestamp}")
+                            screenshot_dir = os.path.join(
+                                base_screenshot_dir, f"{lat_lon}_{main_timestamp}"
+                            )
                             if not os.path.exists(screenshot_dir):
                                 os.makedirs(screenshot_dir)
 
                             screenshot_time = datetime.now().strftime("%H%M%S%d%m%y")
 
                             screenshot_name = f"{safe_filename}_{screenshot_time}.png"
-                            screenshot_path = os.path.join(screenshot_dir, screenshot_name)
+                            screenshot_path = os.path.join(
+                                screenshot_dir, screenshot_name
+                            )
 
                             page.screenshot(path=screenshot_path)
 
                         except Exception as task_error:
-                            print(f"Ошибка при обработке задания в браузере {browser_id}: {task_error}")
+                            print(
+                                f"Ошибка при обработке задания в браузере {browser_id}: {task_error}"
+                            )
                             with failed_links_lock:
                                 failed_links.append(link)
                         finally:
@@ -105,7 +121,9 @@ def get_screenshots(links, num_threads=1):
 
     threads = []
     for browser_id in range(1, num_threads + 1):
-        thread = threading.Thread(target=browser_worker, args=(task_queue, browser_id, main_timestamp))
+        thread = threading.Thread(
+            target=browser_worker, args=(task_queue, browser_id, main_timestamp)
+        )
         threads.append(thread)
         thread.start()
 

@@ -44,8 +44,11 @@
                             <tr>
                                 <td>{{ affiliate.id }}</td>
                                 <td>{{ affiliate.address }}</td>
-                                <td>{{ affiliate.result }}</td>
-                                <td>{{ affiliate.check_time }}</td>
+                                <td class="{% if affiliate.result == 'Обнаружено' %}text-success{% else %}text-danger{% endif %}">
+                                    {{ affiliate.result }}
+                                </td>                                
+                                <td>{{ affiliate.check_time | custom_time_format }}</td>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
