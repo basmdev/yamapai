@@ -357,25 +357,45 @@ def extract_screenshot_data():
         return screenshot_data
 
 
+def clear_screenshots_folder():
+    """Очистка папки со скриншотами."""
+    screenshot_folder = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "screenshots"
+    )
+
+    for root, dirs, files in os.walk(screenshot_folder, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
+
+    print(f"Папка {screenshot_folder} очищена.")
+
+
 def run_check_in_background(links):
     """Проверка в фоновом потоке."""
     global is_check_active
 
-    get_screenshots(links) # Получение скриншотов
-    process_screenshot_folders() # Обработка скриншотов и запись в БД
-    create_excel_report(extract_screenshot_data(), custom_time_format) # Создание отчета в формате Excel
+    get_screenshots(links)  # Получение скриншотов
+    process_screenshot_folders()  # Обработка скриншотов и запись в БД
+    create_excel_report(
+        extract_screenshot_data(), custom_time_format
+    )  # Создание отчета в формате Excel
 
-    reports_folder = os.path.join(os.getcwd(), 'reports')
+    reports_folder = os.path.join(os.getcwd(), "reports")
     files_in_reports = os.listdir(reports_folder)
 
     if files_in_reports:
-        latest_file = max(files_in_reports, key=lambda f: os.path.getmtime(os.path.join(reports_folder, f)))
+        latest_file = max(
+            files_in_reports,
+            key=lambda f: os.path.getmtime(os.path.join(reports_folder, f)),
+        )
         file_path = os.path.join(reports_folder, latest_file)
-        send_email(file_path) # Отправка письма
+        send_email(file_path)  # Отправка письма
     else:
         print("Не обнаружено отчетов в папке.")
 
-    # Очистка после работы
+    clear_screenshots_folder()  # Очистка после работы
 
     is_check_active = False
 
