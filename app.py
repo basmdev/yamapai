@@ -6,7 +6,8 @@ import urllib
 from datetime import datetime
 from itertools import product
 
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import (Flask, abort, flash, redirect, render_template, request,
+                   send_from_directory, url_for)
 from flask_login import LoginManager, login_required, login_user, logout_user
 from sqlalchemy import Integer, cast
 from sqlalchemy.exc import IntegrityError
@@ -15,13 +16,18 @@ import config
 from ai.yolo import analyze_images
 from forms import LoginForm
 from models import Affiliate, Client, Keyword, User, db
+from report_export.export import create_excel_report
 from webdriver.driver import get_screenshots
 
 app = Flask(__name__)
+app.config["APPLICATION_ROOT"] = "/"
 app.config["SECRET_KEY"] = config.SECRET_KEY
 app.config["UPLOAD_FOLDER"] = config.UPLOAD_FOLDER
 app.config["SQLALCHEMY_DATABASE_URI"] = config.SQLALCHEMY_DATABASE_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = config.SQLALCHEMY_TRACK_MODIFICATIONS
+app.config["SERVER_NAME"] = config.SERVER_NAME
+app.config["PREFERRED_URL_SCHEME"] = config.PREFERRED_URL_SCHEME
+
 
 db.init_app(app)
 
@@ -234,6 +240,18 @@ def index():
     )
 
 
+@app.route("/screenshots/bad_results/<filename>")
+def serve_screenshot(filename):
+    """Отдает файл из папки screenshots/bad_results"""
+    screenshot_folder = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "screenshots", "bad_results"
+    )
+    try:
+        return send_from_directory(screenshot_folder, filename)
+    except FileNotFoundError:
+        abort(404)
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Страница авторизации."""
@@ -287,15 +305,59 @@ def process_screenshot_folders():
                 print(f"Не найден филиал с координатами {longitude}, {latitude}")
 
 
+def extract_screenshot_data():
+    """Обработка данных о скриншоте."""
+    with app.app_context():
+        folder_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "screenshots", "bad_results"
+        )
+
+        if not os.path.exists(folder_path):
+            print(f"Папка не найдена: {folder_path}")
+            return []
+
+        files = os.listdir(folder_path)
+        screenshot_data = []
+
+        for file in files:
+            if file.endswith(".png"):
+                try:
+                    longitude, latitude, keyword, zoom, time = file[:-4].split("_")
+                except ValueError:
+                    continue
+
+                location = Affiliate.query.filter_by(
+                    latitude=latitude, longitude=longitude
+                ).first()
+
+                if location:
+                    address = location.address
+                    screenshot_link = url_for("serve_screenshot", filename=file)
+                    screenshot_data.append(
+                        {
+                            "address": address,
+                            "keyword": keyword,
+                            "screenshot": screenshot_link,
+                            "time": time,
+                            "zoom": zoom,
+                        }
+                    )
+
+        return screenshot_data
+
+
 def run_check_in_background(links):
     """Проверка в фоновом потоке."""
     global is_check_active
 
     get_screenshots(links)
     process_screenshot_folders()
-    is_check_active = False
+    create_excel_report(extract_screenshot_data(), custom_time_format)
 
-    # Тут будет вызов функции проверки скриншотов
+    # Отправка отчета по email
+    # Очистка после работы
+
+    is_check_active = False
 
 
 def generate_urls(ZOOM):
