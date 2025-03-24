@@ -31,7 +31,7 @@ def send_email(file_path):
     part.set_payload(attachment.read())
     encoders.encode_base64(part)
     part.add_header(
-        "Content-Disposition", f'attachment; filename={file_path.split("/")[-1]}'
+        "Content-Disposition", f'attachment; filename={file_path.split("report_")[1]}'
     )
     msg.attach(part)
 

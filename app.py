@@ -16,6 +16,7 @@ from sqlalchemy.exc import IntegrityError
 import config
 from ai.yolo import analyze_images
 from forms import LoginForm
+from mail_send.sender import send_email
 from models import Affiliate, Client, Keyword, User, db
 from report_export.export import create_excel_report
 from webdriver.driver import get_screenshots
@@ -360,11 +361,20 @@ def run_check_in_background(links):
     """Проверка в фоновом потоке."""
     global is_check_active
 
-    get_screenshots(links)
-    process_screenshot_folders()
-    create_excel_report(extract_screenshot_data(), custom_time_format)
+    get_screenshots(links) # Получение скриншотов
+    process_screenshot_folders() # Обработка скриншотов и запись в БД
+    create_excel_report(extract_screenshot_data(), custom_time_format) # Создание отчета в формате Excel
 
-    # Отправка отчета по email
+    reports_folder = os.path.join(os.getcwd(), 'reports')
+    files_in_reports = os.listdir(reports_folder)
+
+    if files_in_reports:
+        latest_file = max(files_in_reports, key=lambda f: os.path.getmtime(os.path.join(reports_folder, f)))
+        file_path = os.path.join(reports_folder, latest_file)
+        send_email(file_path) # Отправка письма
+    else:
+        print("Не обнаружено отчетов в папке.")
+
     # Очистка после работы
 
     is_check_active = False
