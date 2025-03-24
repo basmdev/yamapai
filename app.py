@@ -1,5 +1,6 @@
 import csv
 import os
+import shutil
 import threading
 import time
 import urllib
@@ -306,15 +307,18 @@ def process_screenshot_folders():
 
 
 def extract_screenshot_data():
-    """Обработка данных о скриншоте."""
+    """Обработка данных о скриншоте и копирование в static."""
     with app.app_context():
-        folder_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "screenshots", "bad_results"
-        )
+        base_folder = os.path.dirname(os.path.abspath(__file__))
+        folder_path = os.path.join(base_folder, "screenshots", "bad_results")
+        static_folder = os.path.join(base_folder, "static", "screenshots")
 
         if not os.path.exists(folder_path):
             print(f"Папка не найдена: {folder_path}")
             return []
+
+        if not os.path.exists(static_folder):
+            os.makedirs(static_folder)
 
         files = os.listdir(folder_path)
         screenshot_data = []
@@ -326,13 +330,19 @@ def extract_screenshot_data():
                 except ValueError:
                     continue
 
+                src_path = os.path.join(folder_path, file)
+                dst_path = os.path.join(static_folder, file)
+
+                shutil.copy(src_path, dst_path)
+
+                screenshot_link = url_for("static", filename=f"screenshots/{file}")
+
                 location = Affiliate.query.filter_by(
                     latitude=latitude, longitude=longitude
                 ).first()
 
                 if location:
                     address = location.address
-                    screenshot_link = url_for("serve_screenshot", filename=file)
                     screenshot_data.append(
                         {
                             "address": address,
