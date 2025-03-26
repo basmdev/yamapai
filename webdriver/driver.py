@@ -80,13 +80,9 @@ def get_screenshots(links, num_threads=1):
                             page.click(".sidebar-toggle-button")
                             time.sleep(1)
                             page.add_style_tag(
-                                content=".app { display: none !important; }"
-                            )
-                            time.sleep(1)
-                            page.add_style_tag(
                                 content=".popup { display: none !important; }"
                             )
-                            time.sleep(10)
+                            time.sleep(6)
 
                             lat_lon, safe_filename = sanitize_filename(link)
 

@@ -417,11 +417,19 @@ def generate_urls(ZOOM):
 @login_required
 def start_check():
     """Запуск проверки в фоновом потоке."""
+    global is_check_active
+
+    if is_check_active:
+        flash("Проверка уже запущена", "warning")
+        return redirect(url_for("index"))
+
+    is_check_active = True
     links = generate_urls(ZOOMS)
     threading.Thread(target=run_check_in_background, args=(links,)).start()
     flash("Проверка запущена", "success")
 
     return redirect(url_for("index"))
+
 
 
 @app.route("/logout")
