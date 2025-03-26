@@ -431,7 +431,6 @@ def start_check():
     return redirect(url_for("index"))
 
 
-
 @app.route("/logout")
 @login_required
 def logout():

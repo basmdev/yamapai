@@ -66,12 +66,20 @@ def get_screenshots(links, num_threads=1):
                             captcha_text = (
                                 "Подтвердите, что запросы отправляли вы, а не робот"
                             )
-                            if captcha_text in page.content():
+                            captcha_element = page.locator("text=" + captcha_text)
+
+                            if captcha_element.is_visible():
                                 print(
                                     f"Обнаружена капча в браузере {browser_id}, задания приостановлены"
                                 )
                                 pause_event.clear()
-                                time.sleep(3600)
+
+                                while captcha_element.is_visible():
+                                    print("Ожидаем, пока капча будет решена...")
+                                    time.sleep(5)
+                                time.sleep(15)  # Время на решение капчи
+
+                                print("Капча решена, продолжаем выполнение")
                                 pause_event.set()
                                 with failed_links_lock:
                                     failed_links.append(link)
