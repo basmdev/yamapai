@@ -4,6 +4,7 @@ import threading
 import time
 import urllib.parse
 from datetime import datetime
+from random import randint
 
 from playwright.sync_api import sync_playwright
 
@@ -77,7 +78,7 @@ def get_screenshots(links, num_threads=1):
                                 while captcha_element.is_visible():
                                     print("Ожидаем, пока капча будет решена...")
                                     time.sleep(5)
-                                time.sleep(15)  # Время на решение капчи
+                                time.sleep(60)  # Время на решение капчи
 
                                 print("Капча решена, продолжаем выполнение")
                                 pause_event.set()
@@ -90,7 +91,7 @@ def get_screenshots(links, num_threads=1):
                             page.add_style_tag(
                                 content=".popup { display: none !important; }"
                             )
-                            time.sleep(6)
+                            time.sleep(randint(6, 10))
 
                             lat_lon, safe_filename = sanitize_filename(link)
 
