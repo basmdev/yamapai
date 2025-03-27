@@ -15,7 +15,16 @@
                 Файл еще не загружен
             {% endif %}
         </p>
-        <p><strong>Частота проверки: </strong>Каждые {{ client.check_frequency }} часов</p>
+        <p><strong>Частота проверки: </strong>Каждые
+            {% set hours = client.check_frequency %}
+            {% if hours % 10 == 1 and hours % 100 != 11 %}
+              {{ hours }} час
+            {% elif 2 <= hours % 10 <= 4 and not (12 <= hours % 100 <= 14) %}
+              {{ hours }} часа
+            {% else %}
+              {{ hours }} часов
+            {% endif %}
+          </p>          
         <p><strong>Автоматическая проверка: </strong>{% if client.auto_check %}Включена{% else %}Отключена{% endif %}</p>
         {% if client.created_at and not client.auto_check %}
             <div class="mt-4 text-left">

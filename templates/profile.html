@@ -21,13 +21,13 @@
         <div class="form-group mt-4">
             <label for="period" class="font-weight-bold">Частота проверки</label>
             <div class="input-group">
-                <input type="number" class="form-control" id="period" name="period" min="8" max="168" step="1" 
-                       value="{{ client.check_frequency if client and client.check_frequency else 8 }}">
+                <input type="number" class="form-control" id="period" name="period" min="24" max="168" step="1" 
+                       value="{{ client.check_frequency if client and client.check_frequency else 24 }}">
                 <div class="input-group-append">
                     <span class="input-group-text">часов</span>
                 </div>
             </div>
-            <small class="form-text text-muted">Укажите частоту проверки в диапазоне от 8 до 168 часов</small>
+            <small class="form-text text-muted">Укажите частоту проверки в диапазоне от 24 до 168 часов</small>
         </div>
         <div class="form-check mt-4">
             <input class="form-check-input" type="checkbox" id="auto_check" name="auto_check" {% if client and client.auto_check %}checked{% endif %}>
