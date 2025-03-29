@@ -11,7 +11,7 @@ def analyze_images(folder_path):
 
     model = YOLO(weights_path)
 
-    confidence_threshold = 0.8  # Допустимая точность
+    confidence_threshold = 0.7  # Допустимая точность
 
     image_files = os.listdir(folder_path)
 

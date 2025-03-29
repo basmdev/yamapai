@@ -131,7 +131,7 @@ def get_screenshots(links, num_threads=1):
                 time.sleep(2)
 
     threads = []
-    for browser_id in range(1, num_threads + 1):
+    for browser_id in range(1, num_threads + 3):
         thread = threading.Thread(target=browser_worker, args=(task_queue, browser_id))
         threads.append(thread)
         thread.start()
