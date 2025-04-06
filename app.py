@@ -370,12 +370,35 @@ def clear_screenshots_folder():
     print(f"Папка {screenshot_folder} очищена.")
 
 
+def clear_before_report():
+    """Очистка данных в папках static/screenshots и reports перед формированием отчета."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    folders_to_clear = [
+        os.path.join(base_dir, "static", "screenshots"),
+        os.path.join(base_dir, "reports"),
+    ]
+
+    for folder in folders_to_clear:
+        if not os.path.exists(folder):
+            print(f"Папка {folder} не существует.")
+            continue
+
+        for root, dirs, files in os.walk(folder, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                shutil.rmtree(os.path.join(root, name))
+
+        print(f"Папка {folder} очищена.")
+
+
 def run_check_in_background(links):
     """Проверка в фоновом потоке."""
     global is_check_active
 
     get_screenshots(links)  # Получение скриншотов
     process_screenshot_folders()  # Обработка скриншотов и запись в БД
+    clear_before_report()  # Очистка перед формированием отчета
     create_excel_report(
         extract_screenshot_data(), custom_time_format
     )  # Создание отчета в формате Excel
