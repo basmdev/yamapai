@@ -7,10 +7,13 @@ import urllib
 from datetime import datetime
 from itertools import product
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import (Flask, abort, flash, redirect, render_template, request,
                    send_from_directory, url_for)
 from flask_login import LoginManager, login_required, login_user, logout_user
-from sqlalchemy import Integer, cast
 from sqlalchemy.exc import IntegrityError
 
 import config
