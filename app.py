@@ -47,11 +47,11 @@ is_check_active = False  # Параметр автоматической про�
 
 def create_initial_user():
     """Создание первоначального пользователя."""
-    username = os.getenv("USER")
-    password = os.getenv("PASS")
+    username = os.getenv("APP_USER")
+    password = os.getenv("APP_PASS")
 
     if not username or not password:
-        raise ValueError("Переменные окружения USER и PASS не заданы")
+        raise ValueError("Переменные окружения APP_USER и APP_PASS не заданы")
 
     if not User.query.first():
         admin = User(username=username)
