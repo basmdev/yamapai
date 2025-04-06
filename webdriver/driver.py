@@ -47,40 +47,44 @@ def get_screenshots(links, num_threads=1):
         while not task_queue.empty():
             try:
                 with sync_playwright() as p:
-                    browser = p.chromium.launch(
-                        headless=False,
-                        args=["--disable-blink-features=AutomationControlled"],
-                    )
-                    context = browser.new_context(
-                        viewport={"width": 1280, "height": 720}
-                    )
-                    page = context.new_page()
+
+                    def launch_browser():
+                        b = p.chromium.launch(
+                            headless=False,
+                            args=["--disable-blink-features=AutomationControlled"],
+                        )
+                        c = b.new_context(viewport={"width": 1280, "height": 720})
+                        pg = c.new_page()
+                        return b, c, pg
+
+                    browser, context, page = launch_browser()
 
                     while not task_queue.empty():
                         try:
                             pause_event.wait()
-
                             link = task_queue.get_nowait()
-                            page.goto(link, wait_until="load")
-                            time.sleep(1)
 
+                            try:
+                                page.goto(link, wait_until="load")
+                            except Exception:
+                                time.sleep(60)
+                                browser.close()
+                                browser, context, page = launch_browser()
+                                task_queue.put(link)
+                                continue
+
+                            time.sleep(1)
                             captcha_text = (
                                 "Подтвердите, что запросы отправляли вы, а не робот"
                             )
                             captcha_element = page.locator("text=" + captcha_text)
 
                             if captcha_element.is_visible():
-                                print(
-                                    f"Обнаружена капча в браузере {browser_id}, задания приостановлены"
-                                )
+                                print(f"Капча в браузере {browser_id}, пауза")
                                 pause_event.clear()
-
                                 while captcha_element.is_visible():
-                                    print("Ожидаем, пока капча будет решена...")
                                     time.sleep(5)
-                                time.sleep(60)  # Время на решение капчи
-
-                                print("Капча решена, продолжаем выполнение")
+                                time.sleep(60)
                                 pause_event.set()
                                 with failed_links_lock:
                                     failed_links.append(link)
@@ -94,31 +98,24 @@ def get_screenshots(links, num_threads=1):
                             time.sleep(randint(6, 10))
 
                             lat_lon, safe_filename = sanitize_filename(link)
-
-                            if lat_lon not in coordinates_to_time:
-                                main_timestamp = datetime.now().strftime("%H%M%d%m%y")
-                                coordinates_to_time[lat_lon] = main_timestamp
-                            else:
-                                main_timestamp = coordinates_to_time[lat_lon]
-
+                            main_timestamp = coordinates_to_time.setdefault(
+                                lat_lon, datetime.now().strftime("%H%M%d%m%y")
+                            )
                             screenshot_dir = os.path.join(
                                 base_screenshot_dir, f"{lat_lon}_{main_timestamp}"
                             )
-                            if not os.path.exists(screenshot_dir):
-                                os.makedirs(screenshot_dir)
+                            os.makedirs(screenshot_dir, exist_ok=True)
 
                             screenshot_time = datetime.now().strftime("%H%M%d%m%y")
-
                             screenshot_name = f"{safe_filename}_{screenshot_time}.png"
                             screenshot_path = os.path.join(
                                 screenshot_dir, screenshot_name
                             )
-
                             page.screenshot(path=screenshot_path)
 
                         except Exception as task_error:
                             print(
-                                f"Ошибка при обработке задания в браузере {browser_id}: {task_error}"
+                                f"Ошибка в браузере {browser_id} при обработке задачи: {task_error}"
                             )
                             with failed_links_lock:
                                 failed_links.append(link)
@@ -126,9 +123,10 @@ def get_screenshots(links, num_threads=1):
                             task_queue.task_done()
 
                     browser.close()
+
             except Exception as e:
-                print(f"Ошибка в браузере {browser_id}, перезапуск: {e}")
-                time.sleep(2)
+                print(f"Ошибка в браузере {browser_id}: {e}")
+                time.sleep(60)
 
     threads = []
     for browser_id in range(1, num_threads + 3):

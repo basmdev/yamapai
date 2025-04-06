@@ -232,9 +232,7 @@ def profile():
 def index():
     """Главная страница."""
     client = Client.query.first()
-    affiliates = Affiliate.query.order_by(
-        cast(Affiliate.check_time, Integer).desc()
-    ).all()
+    affiliates = Affiliate.query.all()
     keywords = Keyword.query.all()
 
     return render_template(
